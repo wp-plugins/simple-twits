@@ -10,6 +10,8 @@ You can randomize followers and choose how many followers and posts display.
 
 Its an excellent way to showcase your Twitter page on your blog.
 
+Simple Twits also parses @username and URLs into links.
+
 
 == Description ==
 
