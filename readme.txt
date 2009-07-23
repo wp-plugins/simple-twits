@@ -2,7 +2,7 @@
 Contributors: Dane Harrigan @ Code Quietly <http://codequietly.com>
 Tags: twitter, followers, feeds, status
 Requires at least: 2.7
-Stable tag: 0.1
+Stable tag: 0.2
 
 Simple Twits allows you to display your Twitter posts and followers on your blog.
 

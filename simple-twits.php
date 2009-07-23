@@ -3,7 +3,7 @@
 Plugin Name: Simple Twits
 Plugin URI: http://codequietly.com/projects/simple-twits
 Description: Simple Twits allows you to display your Twitter posts and followers on your blog. You can randomize followers and choose how many followers and posts display. Its an excellent way to showcase your Twitter page on your blog.
-Version: 0.1 
+Version: 0.2
 Author: Dane Harrigan
 Author URI: http://codequietly.com
 */
