@@ -3,7 +3,7 @@
 Plugin Name: Simple Twits
 Plugin URI: http://codequietly.com/projects/simple-twits
 Description: Simple Twits allows you to display your Twitter posts and followers on your blog. You can randomize followers and choose how many followers and posts display. Its an excellent way to showcase your Twitter page on your blog.
-Version: 0.2
+Version: 0.3
 Author: Dane Harrigan
 Author URI: http://codequietly.com
 */
@@ -97,6 +97,7 @@ function twitter_followers($return_raw_data=false)
 	$password = get_option('twitter_password');
 	$twitter_followers_count = get_option('twitter_followers_count');
 	$twitter_followers_random = get_option('twitter_followers_random');
+	$twitter_exclude_blocked_accounts = get_option('twitter_exclude_blocked_accounts');
 
 	if(isset($twitter_followers_xml))
 		$xml = $twitter_followers_xml;
@@ -111,6 +112,9 @@ function twitter_followers($return_raw_data=false)
 
 		if($followers_count>0)
 		{
+			if($twitter_exclude_blocked_accounts)
+				$twitter_blocked_accounts = get_twitter_blocked($username, $password);
+
 			$followers = $xml->user;
 			$exclude = array();
 			if($followers_count<$followers_to_display)
@@ -123,8 +127,12 @@ function twitter_followers($return_raw_data=false)
 					$index = rand(0,($followers_count-1));
 					if(isset($followers[$index]) && !in_array($index, $exclude))
 					{
-						$my_followers[] = $followers[$index];
-						$exclude[] = $index;
+						$follower_id = trim($followers[$index]->id[0]);
+						if(!(!empty($twitter_blocked_accounts) && in_array($follower_id,$twitter_blocked_accounts)) )
+						{
+							$my_followers[] = $followers[$index];
+							$exclude[] = $index;
+						}
 					}
 
 					if(count($my_followers) == $followers_to_display)
@@ -135,9 +143,13 @@ function twitter_followers($return_raw_data=false)
 			{
 				foreach($followers as $follower)
 				{
-					$my_followers[] = $follower;
-					if(count($my_followers) == $followers_to_display)
-						break;
+					$follower_id = trim($follower->id[0]);
+					if(!(!empty($twitter_blocked_accounts) && in_array($follower_id, $twitter_blocked_accounts)) )
+					{
+						$my_followers[] = $follower;
+						if(count($my_followers) == $followers_to_display)
+							break;
+					}
 				}
 			}
 
@@ -237,6 +249,28 @@ function get_twitter_xml($username, $password)
 	return $xml;
 }
 
+function get_twitter_blocked($username, $password)
+{
+	$blocked_ids = array();
+	if(!empty($username) && !empty($password))
+	{
+		$url = "http://twitter.com//blocks/blocking/ids.xml";
+
+		$ch = curl_init();	
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
+		curl_setopt($ch, CURLOPT_GET, true);
+
+		$xml = simplexml_load_string(curl_exec($ch));
+		foreach($xml->id as $id)
+			$blocked_ids[] = trim($id[0]);
+	}
+
+	return $blocked_ids;
+}
+
+
 function simple_twits_init()
 {
 	add_action('admin_menu','twitter_tools_config_page');
@@ -300,7 +334,15 @@ function twitter_tools_saved()
 		$twitter_messages_link = get_option('twitter_messages_link');
 		$twitter_message_count = get_option('twitter_message_count');
 
-		$twitter_settings = array('twitter_username','twitter_password','twitter_followers_count','twitter_followers_random','twitter_messages_link','twitter_message_count');
+		$twitter_settings = array(
+			'twitter_username',
+			'twitter_password',
+			'twitter_followers_count',
+			'twitter_followers_random',
+			'twitter_messages_link',
+			'twitter_message_count',
+			'twitter_exclude_blocked_accounts'
+		);
 
 		foreach($twitter_settings as $setting)
 		{
@@ -387,6 +429,12 @@ function twitter_tools_display()
 									<input type="checkbox" name="twitter_followers_random" value="true" id="twitter_followers_random"<?=twitter_set_checked('twitter_followers_random')?>/>
 									<label for="twitter_followers_random">Twitter followers will display at random</label>
 								</div>
+
+								<div class="twitter_options">
+									<input type="checkbox" name="twitter_exclude_blocked_accounts" value="true" id="twitter_exclude_blocked_accounts"<?=twitter_set_checked('twitter_exclude_blocked_accounts')?>/>
+									<label for="twitter_exclude_blocked_accounts">Exclude blocked users from followers</label>
+								</div>
+
 							</td>
 						</tr>
 						<tr>
