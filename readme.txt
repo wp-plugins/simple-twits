@@ -13,6 +13,8 @@ Its an excellent way to showcase your Twitter page on your blog.
 
 == Description ==
 
+UPDATE: Now you can exclude blocked users from your followers list!
+
 Simple Twits is meant to be simple. Just drop <?php twitter_followers() ?> or <?php twitter_messages() ?>
 into your blog and your set.
 
